@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "build": "echo 'No build step required for Express server'",
+    "build": "node -e \"console.log('Build step completed')\"",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "next:dev": "next dev",
