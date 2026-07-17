@@ -1,0 +1,213 @@
+Bushra Tech Playground — Frontend API Contract (NVIDIA Laguna)
+================================================================
+Provider: NVIDIA NIM  (https://integrate.api.nvidia.com/v1)
+Model:    poolside/laguna-xs-2.1
+Base URL: http://localhost:3000   (or your deployed host)
+
+IMPORTANT
+---------
+All feature endpoints below accept the SAME request shape from the frontend
+and return a simple text reply the UI can show.
+
+Shared request body (every feature):
+{
+  "message": "user text here",
+  "isInitial": false,
+  "conversationHistory": [
+    { "role": "assistant", "content": "previous AI reply (most recent first)" },
+    { "role": "user", "content": "previous user message" }
+  ]
+}
+
+Notes:
+- conversationHistory is optional. Most recent first (API reverses it).
+- isInitial: true returns a greeting and does NOT call NVIDIA.
+- Chat uses { "response": "..." }.
+- All other features use { "success": true, "response": "..." }.
+
+
+================================================================
+1) AI CHAT ASSISTANT
+POST /api/chat
+================================================================
+
+--- Initial load ---
+REQUEST:
+{
+  "message": "",
+  "isInitial": true
+}
+
+RESPONSE:
+{
+  "response": "Hello! I'm Asta, your AI chat assistant powered by Bushra Technologies and Services. I'm here to help with questions, writing, research, coding help, math, translation, and casual conversation. How can I assist you today?"
+}
+
+--- Normal message ---
+REQUEST:
+{
+  "message": "Explain black holes in simple terms",
+  "conversationHistory": []
+}
+
+RESPONSE:
+{
+  "response": "A black hole is a region in space where gravity is so strong that nothing — not even light — can escape..."
+}
+
+--- Follow-up with history ---
+REQUEST:
+{
+  "message": "Can you make that shorter for a kid?",
+  "conversationHistory": [
+    {
+      "role": "assistant",
+      "content": "A black hole is a region in space where gravity is so strong..."
+    },
+    {
+      "role": "user",
+      "content": "Explain black holes in simple terms"
+    }
+  ]
+}
+
+RESPONSE:
+{
+  "response": "Sure! Imagine space has a super strong vacuum cleaner. If something gets too close, it gets pulled in and cannot come out — even light. That place is called a black hole."
+}
+
+
+================================================================
+2) CODE GENERATION
+POST /api/code-generation
+================================================================
+
+REQUEST:
+{
+  "message": "Write a Python function that checks if a string is a palindrome",
+  "conversationHistory": []
+}
+
+RESPONSE:
+{
+  "success": true,
+  "response": "Here is a clean Python solution:\n\n```python\ndef is_palindrome(text: str) -> bool:\n    cleaned = ''.join(ch.lower() for ch in text if ch.isalnum())\n    return cleaned == cleaned[::-1]\n```\n\nExample:\n```python\nprint(is_palindrome('Race car'))  # True\n```"
+}
+
+Initial:
+REQUEST: { "message": "", "isInitial": true }
+RESPONSE: { "success": true, "response": "Hello! I'm your Code Generation Assistant..." }
+
+
+================================================================
+3) TEXT ANALYSIS
+POST /api/text-analysis
+================================================================
+
+REQUEST:
+{
+  "message": "Analyze this text: Our launch went well, but support tickets rose 40% and customers feel confused about pricing.",
+  "conversationHistory": []
+}
+
+RESPONSE:
+{
+  "success": true,
+  "response": "**Summary**\nLaunch success mixed with rising support load and pricing confusion.\n\n**Sentiment**\nMixed / cautious negative on support experience.\n\n**Key Insights**\n- Support volume +40%\n- Pricing clarity is a friction point\n\n**Recommendations**\n- Simplify pricing page copy\n- Add FAQ / onboarding tips for new users"
+}
+
+
+================================================================
+4) TRANSLATION NLP
+POST /api/translation-nlp
+================================================================
+
+REQUEST:
+{
+  "message": "Translate to Spanish (formal): We will deliver the report by Friday.",
+  "conversationHistory": []
+}
+
+RESPONSE:
+{
+  "success": true,
+  "response": "**Translation**\nEntregaremos el informe antes del viernes.\n\n**Language Details**\n- Source: English\n- Target: Spanish (formal)\n\n**Alternative**\nEntregaremos el reporte a más tardar el viernes."
+}
+
+
+================================================================
+5) DATA ANALYTICS
+POST /api/data-analytics
+================================================================
+
+REQUEST:
+{
+  "message": "Analyze this CSV sample and tell me the top insight:\nmonth,revenue,churn\nJan,12000,3.1\nFeb,13500,2.8\nMar,12800,4.2\nApr,15100,2.5",
+  "conversationHistory": []
+}
+
+RESPONSE:
+{
+  "success": true,
+  "response": "**Key Insight**\nRevenue grew overall (12k → 15.1k) while churn spiked in March (4.2%) then recovered in April (2.5%).\n\n**Recommendation**\nInvestigate March churn drivers; April recovery suggests the issue may be temporary or already addressed."
+}
+
+
+================================================================
+ERROR RESPONSES
+================================================================
+
+Chat-style error ( /api/chat ):
+{
+  "error": {
+    "message": "Message is required and must not be empty",
+    "type": "invalid_request_error",
+    "code": "invalid_parameter"
+  }
+}
+
+Feature-style error (other endpoints):
+{
+  "success": false,
+  "error": "Message is required and must not be empty"
+}
+
+
+================================================================
+QUICK FRONTEND FETCH EXAMPLE
+================================================================
+
+const res = await fetch('http://localhost:3000/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message: 'Hello!',
+    conversationHistory: []
+  })
+});
+const data = await res.json();
+console.log(data.response);
+
+
+================================================================
+HEALTH / DISCOVERY
+================================================================
+
+GET /health
+RESPONSE:
+{
+  "status": "ok",
+  "message": "Server is running",
+  "provider": "nvidia",
+  "model": "poolside/laguna-xs-2.1",
+  "features": [
+    "chat",
+    "code-generation",
+    "text-analysis",
+    "translation-nlp",
+    "data-analytics"
+  ]
+}
+
+GET /api/features
+→ lists each endpoint path

@@ -1,7 +1,7 @@
 {
   "name": "bushra-tech-playground-backend",
   "version": "1.0.0",
-  "description": "Backend for AI Chat Feature using LongCat API",
+  "description": "Backend for Bushra Tech Playground using NVIDIA NIM (Laguna)",
   "main": "server.js",
   "type": "module",
   "scripts": {
